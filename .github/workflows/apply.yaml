@@ -18,7 +18,7 @@ jobs:
   get-current-branch:
     runs-on: ubuntu-latest
     outputs:
-      current_branch: ${{ steps.set_branch.outputs.branch_name }}
+      current_branch: ${{ steps.set_branch.outputs.branch }}  # match "branch"
     steps:
       - id: set_branch
         run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> "$GITHUB_OUTPUT"
@@ -26,7 +26,8 @@ jobs:
         run: |
           echo "GITHUB_REF=$GITHUB_REF"
           echo "GITHUB_HEAD_REF=$GITHUB_HEAD_REF"
-          echo "${{ steps.set_branch.outputs.branch_name }}"
+          echo "branch from output: ${{ steps.set_branch.outputs.branch }}"
+
 
   terraform-apply:
     
