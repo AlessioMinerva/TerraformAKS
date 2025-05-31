@@ -2,6 +2,9 @@ name: 'Terraform Destroy'
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+    - dev
     #inputs:
     #  user_value:
     #    description: 'Enter a value (e.g., "yes" to apply changes)'
