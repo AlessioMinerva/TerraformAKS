@@ -12,11 +12,6 @@ env:
   ARM_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
   ARM_SUBSCRIPTION_ID: "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
   ARM_TENANT_ID: "${{ secrets.AZURE_TENANT_ID }}"
-#Special permissions required for OIDC authentication
-#permissions:
-#  id-token: write
-#  contents: read
-#  pull-requests: write
 
 jobs:
 
@@ -57,7 +52,11 @@ jobs:
   
       # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
-      run: terraform init
+      run: terraform init \
+        -backend-config="resource_group_name=dev-TerraformAKS"
+        -backend-config="storage_account_name=devtfbackendterraformaks" \ 
+        -backend-config="container_name=tfstate 
+        -backend-config="key=dev.tfstate"
 
     # Checks that all Terraform configuration files adhere to a canonical format
     # Will fail the build if not
@@ -66,12 +65,11 @@ jobs:
 
     # Generates an execution plan for Terraform
     # An exit code of 0 indicated no changes, 1 a terraform failure, 2 there are pending changes.
-    #${{ needs.get-target-branch.outputs.pr_target_branch }}
     - name: Terraform Plan
       id: tf-plan
       run: |
         export exitcode=0
-        terraform plan -var-file=dev.tfvars -detailed-exitcode -no-color -out tfplan || export exitcode=$?
+        terraform plan -var-file=${{ needs.get-target-branch.outputs.pr_target_branch }} -detailed-exitcode -no-color -out tfplan || export exitcode=$?
 
         echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
         
