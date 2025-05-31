@@ -2,13 +2,12 @@ name: 'Terraform Destroy'
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-    - dev
-    #inputs:
-    #  user_value:
-    #    description: 'Enter a value (e.g., "yes" to apply changes)'
-    #    required: true
+    inputs:
+      apply_changes:
+        description: 'Apply Terraform changes? Type "yes" to confirm'
+        type: string
+        required: true
+        default: 'no'
 
 env:
   ARM_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
@@ -18,6 +17,7 @@ env:
 jobs:
 
   get-current-branch:
+    if: ${{ github.event.inputs.apply_changes == 'yes' }}
     runs-on: ubuntu-latest
     outputs:
       current_branch: ${{ steps.set_branch.outputs.branch }}
