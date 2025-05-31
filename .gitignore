@@ -1,3 +1,4 @@
 kubeconfig
 .terraform.lock.hcl
 /.terraform
+text.txt

@@ -1,6 +1,6 @@
 project = "tfAks"
 
-env = "dev"
+env = "stage"
 
 default_tags = {
 

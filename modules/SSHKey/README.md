@@ -27,6 +27,6 @@ No inputs.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_private_key"></a> [private\_key](#output\_private\_key) | export ssh key |
-| <a name="output_public_key"></a> [public\_key](#output\_public\_key) | export ssh key |
+| <a name="output_private_key"></a> [private\_key](#output\_private\_key) | The generated private key in PEM format. Marked as sensitive to avoid accidental exposure |
+| <a name="output_public_key"></a> [public\_key](#output\_public\_key) | The generated public key in OpenSSH format, used for SSH access to virtual machines |
 <!-- END_TF_DOCS -->
