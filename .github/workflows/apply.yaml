@@ -23,15 +23,15 @@ jobs:
       - id: set_branch
         run: echo "::set-output name=target_branch::${{ github.event.pull_request.base.ref }}"
 
-  terraform-plan:
+  terraform-apply:
     
-    name: 'Terraform Plan'
+    name: 'Terraform Apply'
     runs-on: ubuntu-latest
     env:
       #this is needed since we are running terraform with read-only permissions
       ARM_SKIP_PROVIDER_REGISTRATION: true
     outputs:
-      tfplanExitCode: ${{ steps.tf-plan.outputs.exitcode }}
+      tfapplyExitCode: ${{ steps.tf-apply.outputs.exitcode }}
     needs: [get-target-branch]
 
     steps:
