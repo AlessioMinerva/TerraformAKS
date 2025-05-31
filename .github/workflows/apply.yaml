@@ -15,13 +15,13 @@ env:
 
 jobs:
 
-  get-target-branch:
+  get-current-branch:
     runs-on: ubuntu-latest
     outputs:
-      pr_target_branch: ${{ steps.set_branch.outputs.target_branch }}
+      current_branch: ${{ steps.set_branch.outputs.branch_name }}
     steps:
       - id: set_branch
-        run: echo "::set-output name=target_branch::${{ github.event.pull_request.base.ref }}"
+        run: echo "branch=${GITHUB_REF#refs/heads/}" >> "$GITHUB_OUTPUT"
 
   terraform-apply:
     
@@ -32,7 +32,7 @@ jobs:
       ARM_SKIP_PROVIDER_REGISTRATION: true
     outputs:
       tfapplyExitCode: ${{ steps.tf-apply.outputs.exitcode }}
-    needs: [get-target-branch]
+    needs: [get-current-branch]
 
     steps:
     # Checkout the repository to the GitHub Actions runner
@@ -55,11 +55,12 @@ jobs:
     - name: Terraform Init
       run: |
         terraform init \
-          -backend-config="resource_group_name=${{ needs.get-target-branch.outputs.pr_target_branch }}-TerraformAKS" \
-          -backend-config="storage_account_name=${{ needs.get-target-branch.outputs.pr_target_branch }}tfbackendterraformaks" \
+          -backend-config="resource_group_name=${{ needs.get-current-branch.outputs.current_branch }}-TerraformAKS" \
+          -backend-config="storage_account_name=${{ needs.get-current-branch.outputs.current_branch }}tfbackendterraformaks" \
           -backend-config="container_name=tfstate" \
-          -backend-config="key=${{ needs.get-target-branch.outputs.pr_target_branch }}.tfstate"
+          -backend-config="key=${{ needs.get-current-branch.outputs.current_branch }}.tfstate"
 
     # Terraform Apply
     - name: Terraform Apply
-      run: terraform apply -var-file=${{ needs.get-target-branch.outputs.pr_target_branch }}.tfvars -auto-approve
+      id: tf-apply
+      run: terraform apply -var-file=${{ needs.get-current-branch.outputs.current_branch }}.tfvars -auto-approve
