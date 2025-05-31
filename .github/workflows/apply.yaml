@@ -22,6 +22,8 @@ jobs:
     steps:
       - id: set_branch
         run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> "$GITHUB_OUTPUT"
+      - name: debug
+        run: echo ${{ steps.set_branch.outputs.branch_name }}
 
   terraform-apply:
     
