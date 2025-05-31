@@ -1,0 +1,65 @@
+name: 'Terraform Apply'
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - dev
+    - stage
+    - prod
+
+env:
+  ARM_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
+  ARM_SUBSCRIPTION_ID: "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+  ARM_TENANT_ID: "${{ secrets.AZURE_TENANT_ID }}"
+
+jobs:
+
+  get-target-branch:
+    runs-on: ubuntu-latest
+    outputs:
+      pr_target_branch: ${{ steps.set_branch.outputs.target_branch }}
+    steps:
+      - id: set_branch
+        run: echo "::set-output name=target_branch::${{ github.event.pull_request.base.ref }}"
+
+  terraform-apply:
+    
+    name: 'Terraform Apply'
+    runs-on: ubuntu-latest
+    env:
+      #this is needed since we are running terraform with read-only permissions
+      ARM_SKIP_PROVIDER_REGISTRATION: true
+    outputs:
+      tfapplyExitCode: ${{ steps.tf-apply.outputs.exitcode }}
+    needs: [get-target-branch]
+
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    # Install the latest version of the Terraform CLI
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_wrapper: false
+        terraform_version: 1.12.1
+     
+    - name: Authenticate Azure CLI
+      uses: azure/login@v2
+      with:
+        creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
+  
+      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init
+      run: |
+        terraform init \
+          -backend-config="resource_group_name=${{ needs.get-target-branch.outputs.pr_target_branch }}-TerraformAKS" \
+          -backend-config="storage_account_name=${{ needs.get-target-branch.outputs.pr_target_branch }}tfbackendterraformaks" \
+          -backend-config="container_name=tfstate" \
+          -backend-config="key=${{ needs.get-target-branch.outputs.pr_target_branch }}.tfstate"
+
+    # Terraform Apply
+    - name: Terraform Apply
+      run: terraform apply -var-file=${{ needs.get-target-branch.outputs.pr_target_branch }}.tfvars -auto-approve
