@@ -48,6 +48,7 @@ jobs:
       uses: hashicorp/setup-terraform@v3
       with:
         terraform_wrapper: false
+        terraform_version: 1.12.1
      
     - name: Authenticate Azure CLI
       uses: azure/login@v2
