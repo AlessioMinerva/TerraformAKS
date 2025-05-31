@@ -1,3 +1,51 @@
+# Azure Terraform Infrastructure Module
+
+This repository provides a modular and improved Terraform configuration for deploying infrastructure on Microsoft Azure, with a focus on automation, environment isolation, tagging, and best practices.
+
+> ✨ Based on [piyushsachdeva/Terraform-Full-Course-Azure](https://github.com/piyushsachdeva/Terraform-Full-Course-Azure/tree/main/lessons/day26) with several enhancements for better reusability, security, and automation.
+
+## ✨ Improvements Over the Original
+
+This module introduces several key improvements and refinements over the original structure:
+
+- **Dynamic Subscription Retrieval**: Azure subscription information is dynamically retrieved using the `azurerm_subscription` data source, removing the need to hardcode subscription IDs.
+- **Role Assignment**: Adds a dedicated `azurerm_role_assignment` block to assign the `Key Vault Secrets Officer` role to the authenticated client:
+  ```hcl
+  resource "azurerm_role_assignment" "this" {
+    principal_id         = data.azuread_client_config.current.object_id
+    role_definition_name = "Key Vault Secrets Officer"
+    scope                = azurerm_key_vault.this.id
+  }
+  ```
+
+
+* **Tagging Support**: Implements a tagging strategy by combining default and custom tags to ensure resources are well-annotated.
+* **Naming Convention**: Adopts structured naming for resources using environment and project context (e.g., `${var.env}-${var.project}-rg`).
+* **SSH Key Generation**: Automatically generates SSH keys using Terraform instead of requiring manual key generation or storing them in the repo.
+* **VM SKU Filtering**: Dynamically selects an available VM SKU in the region by filtering on type and minimum core requirements.
+* **AKS Versioning**: Defaults to the latest AKS cluster version when not explicitly specified.
+* **Cleanup**: Removed unused variables and refined module structure for better readability and maintainability.
+
+## 🔧 Usage
+
+To deploy this infrastructure, create an environment-specific variable file (e.g., `dev.tfvars`) and run:
+
+```bash
+terraform init
+terraform plan -var-file="dev.tfvars"
+terraform apply -var-file="dev.tfvars"
+```
+
+## 🔐 Prerequisites
+
+Ensure you have the following configured:
+
+* Azure CLI authenticated (`az login`)
+* Proper permissions to assign roles and manage resources in the target subscription
+* Terraform >= 1.9.0 installed
+
+---
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
