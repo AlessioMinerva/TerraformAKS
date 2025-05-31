@@ -6,7 +6,7 @@ output "resource_group_name" {
 output "cluster_config" {
   value       = module.aks.config
   sensitive   = true
-   description = "The raw Kubernetes config to access the AKS cluster. Marked as sensitive to avoid being displayed in CLI output"
+  description = "The raw Kubernetes config to access the AKS cluster. Marked as sensitive to avoid being displayed in CLI output"
 }
 
 #Note: I coudl not find an easy way to filter the available vm in a region

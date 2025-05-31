@@ -69,7 +69,7 @@ module "aks" {
   cluster_name           = "${var.env}-${var.project}-cluster"
   node_pool_name         = "${var.env}-${var.project}-np"
   vm_size                = local.series_vm_sizes[0]
-  tags_map = local.tags_map
+  tags_map               = local.tags_map
 
   depends_on = [
     module.ServicePrincipal

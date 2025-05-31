@@ -10,10 +10,10 @@ on:
 
 
 #Special permissions required for OIDC authentication
-permissions:
-  id-token: write
-  contents: read
-  pull-requests: write
+#permissions:
+#  id-token: write
+#  contents: read
+#  pull-requests: write
 
 jobs:
 

@@ -4,7 +4,7 @@ env = "dev"
 
 default_tags = {
 
-  Owner     = "Minerva"  
+  Owner     = "Minerva"
   ManagedBy = "Terraform"
 
 }

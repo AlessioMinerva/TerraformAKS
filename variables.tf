@@ -35,13 +35,13 @@ variable "extra_tags" {
 }
 
 variable "location" {
-  type    = string
-  default = "UKSouth"
+  type        = string
+  default     = "UKSouth"
   description = "Azure region where the resources will be deployed"
 }
 
 variable "vm_type" {
-  type    = map(string)
+  type = map(string)
   default = {
     type  = "Standard_D2"
     cores = "3"
