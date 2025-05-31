@@ -55,7 +55,7 @@ jobs:
       run: terraform init \
         -backend-config="resource_group_name=dev-TerraformAKS"
         -backend-config="storage_account_name=devtfbackendterraformaks" \ 
-        -backend-config="container_name=tfstate 
+        -backend-config="container_name=tfstate"
         -backend-config="key=dev.tfstate"
 
     # Checks that all Terraform configuration files adhere to a canonical format
