@@ -1,0 +1,69 @@
+name: 'Terraform Destroy'
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply_changes:
+        description: 'Apply Terraform changes? Type "yes" to confirm'
+        type: string
+        required: true
+        default: 'no'
+
+env:
+  ARM_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
+  ARM_SUBSCRIPTION_ID: "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+  ARM_TENANT_ID: "${{ secrets.AZURE_TENANT_ID }}"
+
+jobs:
+
+  get-current-branch:
+    if: ${{ github.event.inputs.apply_changes == 'yes' }}
+    runs-on: ubuntu-latest
+    outputs:
+      current_branch: ${{ steps.set_branch.outputs.branch }}
+    steps:
+      - id: set_branch
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> "$GITHUB_OUTPUT"
+
+
+  terraform-destroy:
+    
+    name: 'Terraform Destroy'
+    runs-on: ubuntu-latest
+    env:
+      #this is needed since we are running terraform with read-only permissions
+      ARM_SKIP_PROVIDER_REGISTRATION: true
+    outputs:
+      tfapplyExitCode: ${{ steps.tf-destroy.outputs.exitcode }}
+    needs: [get-current-branch]
+
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    # Install the latest version of the Terraform CLI
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_wrapper: false
+        terraform_version: 1.12.1
+     
+    - name: Authenticate Azure CLI
+      uses: azure/login@v2
+      with:
+        creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
+  
+      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init
+      run: |
+        terraform init \
+          -backend-config="resource_group_name=${{ needs.get-current-branch.outputs.current_branch }}-TerraformAKS" \
+          -backend-config="storage_account_name=${{ needs.get-current-branch.outputs.current_branch }}tfbackendterraformaks" \
+          -backend-config="container_name=tfstate" \
+          -backend-config="key=${{ needs.get-current-branch.outputs.current_branch }}.tfstate"
+
+    # Terraform Destroy
+    - name: Terraform Destroy
+      id: tf-destroy
+      run: terraform destroy -var-file=${{ needs.get-current-branch.outputs.current_branch }}.tfvars -auto-approve
