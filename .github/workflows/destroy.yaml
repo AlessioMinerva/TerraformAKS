@@ -1,12 +1,11 @@
-name: 'Terraform Apply'
+name: 'Terraform Destroy'
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-    - dev
-    - stage
-    - prod
+    #inputs:
+    #  user_value:
+    #    description: 'Enter a value (e.g., "yes" to apply changes)'
+    #    required: true
 
 env:
   ARM_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
@@ -18,21 +17,21 @@ jobs:
   get-current-branch:
     runs-on: ubuntu-latest
     outputs:
-      current_branch: ${{ steps.set_branch.outputs.branch }}  # match "branch"
+      current_branch: ${{ steps.set_branch.outputs.branch }}
     steps:
       - id: set_branch
         run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> "$GITHUB_OUTPUT"
 
 
-  terraform-apply:
+  terraform-destroy:
     
-    name: 'Terraform Apply'
+    name: 'Terraform Destroy'
     runs-on: ubuntu-latest
     env:
       #this is needed since we are running terraform with read-only permissions
       ARM_SKIP_PROVIDER_REGISTRATION: true
     outputs:
-      tfapplyExitCode: ${{ steps.tf-apply.outputs.exitcode }}
+      tfapplyExitCode: ${{ steps.tf-destroy.outputs.exitcode }}
     needs: [get-current-branch]
 
     steps:
@@ -61,7 +60,7 @@ jobs:
           -backend-config="container_name=tfstate" \
           -backend-config="key=${{ needs.get-current-branch.outputs.current_branch }}.tfstate"
 
-    # Terraform Apply
-    - name: Terraform Apply
-      id: tf-apply
-      run: terraform apply -var-file=${{ needs.get-current-branch.outputs.current_branch }}.tfvars -auto-approve
+    # Terraform Destroy
+    - name: Terraform Destroy
+      id: tf-destroy
+      run: terraform destroy -var-file=${{ needs.get-current-branch.outputs.current_branch }}.tfvars -auto-approve
