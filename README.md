@@ -8,6 +8,7 @@ This repository provides a modular and improved Terraform configuration for depl
 
 This module introduces several key improvements and refinements over the original structure:
 
+- **Environment Configuration**: Instead of using separate folders for `staging` and `dev`, this module supports environment-specific configuration via separate variable files and pipeline deployment.
 - **Dynamic Subscription Retrieval**: Azure subscription information is dynamically retrieved using the `azurerm_subscription` data source, removing the need to hardcode subscription IDs.
 - **Role Assignment**: Adds a dedicated `azurerm_role_assignment` block to assign the `Key Vault Secrets Officer` role to the authenticated client:
   ```hcl
@@ -43,6 +44,7 @@ Ensure you have the following configured:
 * Azure CLI authenticated (`az login`)
 * Proper permissions to assign roles and manage resources in the target subscription
 * Terraform >= 1.9.0 installed
+
 
 ---
 
@@ -103,3 +105,21 @@ Ensure you have the following configured:
 | <a name="output_cluster_config"></a> [cluster\_config](#output\_cluster\_config) | The raw Kubernetes config to access the AKS cluster. Marked as sensitive to avoid being displayed in CLI output |
 | <a name="output_resource_group_name"></a> [resource\_group\_name](#output\_resource\_group\_name) | The name of the created Azure Resource Group |
 <!-- END_TF_DOCS -->
+
+## 📦 Terraform Pipelines
+
+### 🔐 Prerequisites
+* GitHub Application with relevat role
+* GitHub Actions Secret in the repo
+
+### Plan
+
+This GitHub Actions workflow automatically runs terraform plan on pull requests targeting the dev, stage, or prod branches, or when manually triggered via the Actions tab. It performs a full Terraform initialization using environment-specific remote backend configurations, validates and formats the Terraform code, and generates a detailed execution plan. The resulting plan is saved as an artifact, summarized in the GitHub Actions step summary, and posted as a comment on the pull request. This allows teams to review infrastructure changes before approval or merge. The workflow uses OIDC-based Azure authentication and requires specific permissions, including the ability to write PR comments.
+
+### Apply
+
+This workflow is triggered on a push event, which typically occurs when a pull request is approved and merged. Like the plan workflow, it dynamically detects the current branch—this time using the branch where the merge occurred—and applies the corresponding Terraform changes using the appropriate state and variable files.
+
+### Destroy 
+
+This pipeline can only be triggered manually using the workflow_dispatch event. The user must provide the target branch as an input, which will be used similarly to how it's handled in the Apply pipeline. For safety, an additional confirmation input is required, if this is not provided correctly, the destroy job will be skipped to prevent accidental deletions.
