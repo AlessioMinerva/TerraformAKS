@@ -43,8 +43,8 @@ variable "location" {
 variable "vm_type" {
   type = map(string)
   default = {
-    type  = "Standard_D2"
-    cores = "3"
+    type  = "Standard_D2" #Family and series
+    cores = "3"           #number of VCPU
   }
   description = "Map specifying the base VM type and minimum v-core version (e.g., v3+). Used for filtering SKUs"
 }
